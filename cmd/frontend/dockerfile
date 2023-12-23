@@ -1,0 +1,13 @@
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /build
+COPY . .
+WORKDIR /build/cmd/frontend
+RUN go build -o main .
+
+FROM alpine AS app
+
+WORKDIR /app
+COPY --from=builder /build/cmd/frontend/main /app
+
+ENTRYPOINT ["/app/main"]
