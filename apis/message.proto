@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+option go_package = "github.com/atgane/opentd/apis";
+
+message BuyRequest {
+    string user_id = 1;
+    string target = 2;
+    int64 amount = 3;
+    int64 price = 4;
+}
+
+message BuyResponse {
+    string request_id = 1;
+    string target = 2;
+    int64 amount = 3;
+    int64 price = 4;
+}
+
+message SellRequest {
+    string user_id = 1;
+    string target = 2;
+    int64 amount = 3;
+    int64 price = 4;
+}
+
+message SellResponse {
+    string request_id = 1;
+    string target = 2;
+    int64 amount = 3;
+    int64 price = 4;
+}
+
+message CancelRequest {
+    string user_id = 1;
+    string request_id = 2;
+}
+
+message CancelResponse {
+    string request_id = 1;
+    string target = 2;
+    int64 amount = 3;
+    int64 price = 4;
+}
+
+message UpdateRequest {
+    string user_id = 1;
+    string request_id = 2;
+    string target = 3;
+    int64 amount = 4;
+    int64 price = 5;
+}
+
+message UpdateResponse {
+    string request_id = 1;
+    string target = 2;
+    int64 amount = 3;
+    int64 price = 4;
+}
+
+message GetDealRequest {
+    string user_id = 1;
+    string target = 2;
+}
+
+message GetDealStream {
+    string deal_id = 1;
+    string target = 2;
+    int64 amount = 3;
+    int64 price = 4;
+    string buyer_id = 5;
+    string seller_id = 6;
+}

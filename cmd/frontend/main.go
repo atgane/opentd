@@ -1,11 +1,8 @@
 package main
 
-import "net/http"
+type config struct {
+	GRPCPort int
+}
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hello"))
-	})
-
-	http.ListenAndServe(":3000", nil)
 }

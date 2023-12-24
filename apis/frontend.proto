@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option go_package = "github.com/atgane/opentd/apis";
+
+import "apis/message.proto";
+
+service Frontend {
+    rpc Buy(BuyRequest) returns (BuyResponse) {}
+    rpc Sell(SellRequest) returns (SellResponse) {}
+    rpc Cancel(CancelRequest) returns (CancelResponse) {}
+    rpc Update(UpdateRequest) returns (UpdateResponse) {}
+}
