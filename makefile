@@ -53,9 +53,23 @@ build-proto:
 		--go-grpc_opt=paths=source_relative \
 		--proto_path=.
 
+#      _      _                 
+#   __| | ___| |__  _   _  __ _ 
+#  / _` |/ _ \ '_ \| | | |/ _` |
+# | (_| |  __/ |_) | |_| | (_| |
+#  \__,_|\___|_.__/ \__,_|\__, |
+#                         |___/ 
+
+set-debug:
+	docker run --name nats --network nats --rm -p 4222:4222 -p 8222:8222 nats --http_port 8222
+
+remove-debug:
+	docker rm -f nats
+
 #             _            _       
 #  _ __  _ __(_)_   ____ _| |_ ___ 
 # | '_ \| '__| \ \ / / _` | __/ _ \
 # | |_) | |  | |\ V / (_| | ||  __/
 # | .__/|_|  |_| \_/ \__,_|\__\___|
 # |_|                              
+
