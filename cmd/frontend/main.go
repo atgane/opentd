@@ -7,7 +7,7 @@ import (
 
 	"github.com/atgane/opentd/apis"
 	"github.com/atgane/opentd/pkgs/events"
-	"github.com/rs/zerolog"
+	"github.com/atgane/opentd/pkgs/logging"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
@@ -22,30 +22,33 @@ type config struct {
 func main() {
 	// TODO: make env loader
 	conf := config{
-		GRPCPort:  17011,
-		EventType: "",
+		GRPCPort:   17011,
+		EventType:  "",
+		NATSConfig: events.NATSConfig{},
+		LogLevel:   "debug",
 	}
 
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	logging.SetLevel(conf.LogLevel)
 
 	if conf.EventType == events.NATS {
 	} else {
-		log.Fatal().Err(fmt.Errorf("unidentified events"))
+		err := fmt.Errorf("unidentified event")
+		log.Fatal().Err(err).Msg("failed to initialize event")
 		return
 	}
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GRPCPort))
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("failed to net.Listen()")
 		return
 	}
 	gs, err := newFrontend(conf)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("failed to initialize frontend")
 		return
 	}
 	if err := gs.Serve(l); err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("failed to gs.Serve()")
 		return
 	}
 }
