@@ -36,8 +36,8 @@ func main() {
 	logging.SetLevel(conf.LogLevel)
 
 	var err error
-	var consumerClient cloudevents.Client
-	consumerClient, err = events.NewConsumerEvent(conf.EventConfig)
+	var producerClient cloudevents.Client
+	producerClient, err = events.NewProducerEvent(conf.EventConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to initialize event")
 		return
@@ -50,7 +50,7 @@ func main() {
 		return
 	}
 
-	gs, err := newFrontend(conf, consumerClient)
+	gs, err := newFrontend(conf, producerClient)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to initialize frontend")
 		return
@@ -64,14 +64,14 @@ func main() {
 }
 
 type frontend struct {
-	consumerClient cloudevents.Client
+	producerClient cloudevents.Client
 	apis.UnimplementedFrontendServer
 }
 
 func newFrontend(c config, ec cloudevents.Client) (*grpc.Server, error) {
 	gs := grpc.NewServer()
 	fs := new(frontend)
-	fs.consumerClient = ec
+	fs.producerClient = ec
 	apis.RegisterFrontendServer(gs, fs)
 	return gs, nil
 }
