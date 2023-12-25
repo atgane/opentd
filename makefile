@@ -61,7 +61,7 @@ build-proto:
 #                         |___/ 
 
 set-debug:
-	docker run --name nats --network nats --rm -p 4222:4222 -p 8222:8222 nats --http_port 8222
+	docker run -d --name nats --rm -p 4222:4222 -p 8222:8222 nats --http_port 8222
 
 remove-debug:
 	docker rm -f nats

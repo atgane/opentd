@@ -14,7 +14,7 @@ type NATSConfig struct {
 	NATSOptions []nats.Option
 }
 
-func NewNATSEventClient(conf NATSConfig) (cloudevents.Client, error) {
+func newNATSConsumerEventClient(conf NATSConfig) (cloudevents.Client, error) {
 	ctx := context.Background()
 	p, err := cenats.NewConsumer(conf.NATSServer, conf.Subject, conf.NATSOptions)
 	if err != nil {
