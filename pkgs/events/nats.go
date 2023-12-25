@@ -29,3 +29,19 @@ func newNATSConsumerEventClient(conf NATSConfig) (cloudevents.Client, error) {
 
 	return c, nil
 }
+
+func newNATSProducerEventClient(conf NATSConfig) (cloudevents.Client, error) {
+	ctx := context.Background()
+	p, err := cenats.NewSender(conf.NATSServer, conf.Subject, conf.NATSOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	defer p.Close(ctx)
+	c, err := cloudevents.NewClient(p)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}

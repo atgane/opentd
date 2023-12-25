@@ -25,3 +25,14 @@ func NewConsumerEvent(conf EventConfig) (c cloudevents.Client, err error) {
 
 	return nil, fmt.Errorf("undefined event")
 }
+
+func NewProducerEvent(conf EventConfig) (c cloudevents.Client, err error) {
+	if conf.EventType == NATS {
+		if c, err = newNATSProducerEventClient(conf.NATSConfig); err != nil {
+			return nil, err
+		}
+		return c, nil
+	}
+
+	return nil, fmt.Errorf("undefined event")
+}
