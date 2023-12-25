@@ -30,7 +30,7 @@ func main() {
 				Subject:    "some-subject",
 			},
 		},
-		LogLevel: "debug",
+		LogLevel: "trace",
 	}
 
 	logging.SetLevel(conf.LogLevel)

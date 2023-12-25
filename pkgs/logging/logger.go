@@ -7,7 +7,7 @@ import (
 )
 
 func SetLevel(level string) {
-	var gl zerolog.Level
+	var gl zerolog.Level = zerolog.InfoLevel
 	switch strings.ToLower(level) {
 	case "trace":
 		gl = zerolog.TraceLevel
@@ -22,6 +22,5 @@ func SetLevel(level string) {
 	case "panic":
 		gl = zerolog.PanicLevel
 	}
-	gl = zerolog.InfoLevel
 	zerolog.SetGlobalLevel(gl)
 }
