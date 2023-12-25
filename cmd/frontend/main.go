@@ -42,17 +42,21 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to initialize event")
 		return
 	}
+	log.Debug().Msg("event consumer client initializing success")
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GRPCPort))
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to net.Listen()")
 		return
 	}
+
 	gs, err := newFrontend(conf, consumerClient)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to initialize frontend")
 		return
 	}
+	log.Debug().Msg("frontend initializing success")
+
 	if err := gs.Serve(l); err != nil {
 		log.Fatal().Err(err).Msg("failed to gs.Serve()")
 		return
