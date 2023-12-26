@@ -11,9 +11,6 @@ message BuyRequest {
 
 message BuyResponse {
     string request_id = 1;
-    string target = 2;
-    int64 amount = 3;
-    int64 price = 4;
 }
 
 message SellRequest {
@@ -25,9 +22,6 @@ message SellRequest {
 
 message SellResponse {
     string request_id = 1;
-    string target = 2;
-    int64 amount = 3;
-    int64 price = 4;
 }
 
 message CancelRequest {
@@ -37,9 +31,6 @@ message CancelRequest {
 
 message CancelResponse {
     string request_id = 1;
-    string target = 2;
-    int64 amount = 3;
-    int64 price = 4;
 }
 
 message UpdateRequest {
@@ -52,9 +43,6 @@ message UpdateRequest {
 
 message UpdateResponse {
     string request_id = 1;
-    string target = 2;
-    int64 amount = 3;
-    int64 price = 4;
 }
 
 message GetDealRequest {

@@ -122,9 +122,6 @@ func (f *frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResp
 
 	res := new(apis.BuyResponse)
 	res.RequestId = rid.String()
-	res.Target = req.Target
-	res.Amount = req.Amount
-	res.Price = req.Price
 
 	return res, nil
 }
@@ -155,9 +152,6 @@ func (f *frontend) Sell(ctx context.Context, req *apis.SellRequest) (*apis.SellR
 
 	res := new(apis.SellResponse)
 	res.RequestId = rid.String()
-	res.Target = req.Target
-	res.Amount = req.Amount
-	res.Price = req.Price
 
 	return res, nil
 }
