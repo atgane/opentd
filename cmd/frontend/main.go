@@ -55,23 +55,31 @@ func main() {
 
 type frontend struct {
 	producerClient cloudevents.Client
+	redisClient    *redis.Client
+	port           int
+	gs             *grpc.Server
+
 	apis.UnimplementedFrontendServer
-	port int
-	gs   *grpc.Server
 }
 
 func NewFrontend(conf config) (*frontend, error) {
-	var err error
-	var producerClient cloudevents.Client
-	producerClient, err = events.NewProducerEvent(conf.EventConfig)
+	ctx := context.Background()
+
+	producerClient, err := events.NewProducerEvent(conf.EventConfig)
 	if err != nil {
 		return nil, err
 	}
 	log.Debug().Msg("event consumer client initializing success")
 
+	redisClient := redis.NewClient(&conf.RedisConfig)
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		return nil, err
+	}
+
 	gs := grpc.NewServer()
 	fs := new(frontend)
 	fs.producerClient = producerClient
+	fs.redisClient = redisClient
 	fs.port = conf.GRPCPort
 	fs.gs = gs
 	apis.RegisterFrontendServer(gs, fs)
