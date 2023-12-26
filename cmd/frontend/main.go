@@ -211,5 +211,58 @@ func (f *frontend) Cancel(ctx context.Context, req *apis.CancelRequest) (*apis.C
 }
 
 func (f *frontend) Update(ctx context.Context, req *apis.UpdateRequest) (*apis.UpdateResponse, error) {
-	return nil, nil
+	log.Debug().Interface("req", req).Msg("cancel order accepted")
+
+	result := f.redisClient.SetNX(ctx, req.RequestId, 1, f.lockExpireSecond)
+	success, err := result.Result()
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("user_id", req.UserId).
+			Str("request_id", req.RequestId).
+			Str("target", req.Target).
+			Int64("amount", req.Amount).
+			Int64("price", req.Price).
+			Msg("failed to f.redisClient.SetNX()")
+		return nil, err
+	}
+	if !success {
+		msg := "deal already has been executed"
+		log.Error().
+			Err(err).
+			Str("user_id", req.UserId).
+			Str("request_id", req.RequestId).
+			Str("target", req.Target).
+			Int64("amount", req.Amount).
+			Int64("price", req.Price).
+			Msg("msg")
+		return nil, status.Errorf(codes.AlreadyExists, msg)
+	}
+
+	rid := uuid.New()
+
+	e := cloudevents.NewEvent()
+	e.SetID(rid.String())
+	e.SetType(events.SellType)
+	e.SetTime(time.Now())
+	e.SetSource(events.FrontendSource)
+	_ = e.SetData(cloudevents.ApplicationJSON, req)
+
+	if result := f.producerClient.Send(ctx, e); cloudevents.IsUndelivered(result) {
+		err := fmt.Errorf("cloud event message send failed")
+		log.Error().
+			Err(err).
+			Str("user_id", req.UserId).
+			Str("target", req.RequestId).
+			Str("target", req.Target).
+			Int64("amount", req.Amount).
+			Int64("price", req.Price).
+			Msg("failed to f.producerClient.Send()")
+		return nil, err
+	}
+
+	res := new(apis.UpdateResponse)
+	res.RequestId = rid.String()
+
+	return res, nil
 }
