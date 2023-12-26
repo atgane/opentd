@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/atgane/opentd/apis"
 	"github.com/atgane/opentd/pkgs/events"
 	"github.com/atgane/opentd/pkgs/logging"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
@@ -78,15 +80,69 @@ func newFrontend(c config, ec cloudevents.Client) (*grpc.Server, error) {
 
 func (f *frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResponse, error) {
 	// TODO: add otel tracing
-	// TODO: impl logic
-	return nil, nil
+	rid := uuid.New()
+
+	e := cloudevents.NewEvent()
+	e.SetID(rid.String())
+	e.SetType(events.BuyType)
+	e.SetTime(time.Now())
+	e.SetSource(events.FrontendSource)
+	_ = e.SetData(cloudevents.ApplicationJSON, req)
+
+	if result := f.producerClient.Send(ctx, e); cloudevents.IsUndelivered(result) {
+		err := fmt.Errorf("cloud event message send failed")
+		log.Error().
+			Err(err).
+			Str("user_id", req.UserId).
+			Str("target", req.Target).
+			Int64("amount", req.Amount).
+			Int64("price", req.Price).
+			Msg("failed to f.producerClient.Send()")
+		return nil, err
+	}
+
+	res := new(apis.BuyResponse)
+	res.RequestId = rid.String()
+	res.Target = req.Target
+	res.Amount = req.Amount
+	res.Price = req.Price
+
+	return res, nil
 }
 
 func (f *frontend) Sell(ctx context.Context, req *apis.SellRequest) (*apis.SellResponse, error) {
-	return nil, nil
+	rid := uuid.New()
+
+	e := cloudevents.NewEvent()
+	e.SetID(rid.String())
+	e.SetType(events.SellType)
+	e.SetTime(time.Now())
+	e.SetSource(events.FrontendSource)
+	_ = e.SetData(cloudevents.ApplicationJSON, req)
+
+	if result := f.producerClient.Send(ctx, e); cloudevents.IsUndelivered(result) {
+		err := fmt.Errorf("cloud event message send failed")
+		log.Error().
+			Err(err).
+			Str("user_id", req.UserId).
+			Str("target", req.Target).
+			Int64("amount", req.Amount).
+			Int64("price", req.Price).
+			Msg("failed to f.producerClient.Send()")
+		return nil, err
+	}
+
+	res := new(apis.SellResponse)
+	res.RequestId = rid.String()
+	res.Target = req.Target
+	res.Amount = req.Amount
+	res.Price = req.Price
+
+	return res, nil
 }
 
 func (f *frontend) Cancel(ctx context.Context, req *apis.CancelRequest) (*apis.CancelResponse, error) {
+	// TODO: impl logic
 	return nil, nil
 }
 
