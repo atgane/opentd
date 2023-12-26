@@ -80,6 +80,8 @@ func newFrontend(c config, ec cloudevents.Client) (*grpc.Server, error) {
 
 func (f *frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResponse, error) {
 	// TODO: add otel tracing
+	log.Debug().Interface("req", req).Msg("buy order accepted")
+
 	rid := uuid.New()
 
 	e := cloudevents.NewEvent()
@@ -111,6 +113,8 @@ func (f *frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResp
 }
 
 func (f *frontend) Sell(ctx context.Context, req *apis.SellRequest) (*apis.SellResponse, error) {
+	log.Debug().Interface("req", req).Msg("sell order accepted")
+
 	rid := uuid.New()
 
 	e := cloudevents.NewEvent()

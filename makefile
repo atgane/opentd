@@ -61,10 +61,12 @@ build-proto:
 #                         |___/ 
 
 set-debug:
-	docker run -d --name nats --rm -p 4222:4222 -p 8222:8222 nats --http_port 8222
+	docker run -d --name nats -p 4222:4222 -p 8222:8222 nats --http_port 8222
+	docker run -d --name redis -p 6379:6379 redis
 
 remove-debug:
 	docker rm -f nats
+	docker rm -f redis
 
 #             _            _       
 #  _ __  _ __(_)_   ____ _| |_ ___ 
