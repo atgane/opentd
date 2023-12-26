@@ -42,45 +42,49 @@ func main() {
 
 	logging.SetLevel(conf.LogLevel)
 
-	var err error
-	var producerClient cloudevents.Client
-	producerClient, err = events.NewProducerEvent(conf.EventConfig)
+	fs, err := NewFrontend(conf)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to initialize event")
-		return
-	}
-	log.Debug().Msg("event consumer client initializing success")
-
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.GRPCPort))
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to net.Listen()")
+		log.Fatal().Err(err).Msg("frontend initialize error")
 		return
 	}
 
-	gs, err := newFrontend(conf, producerClient)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to initialize frontend")
-		return
-	}
-	log.Debug().Msg("frontend initializing success")
-
-	if err := gs.Serve(l); err != nil {
-		log.Fatal().Err(err).Msg("failed to gs.Serve()")
-		return
+	if err := fs.Start(); err != nil {
+		log.Fatal().Err(err).Msg("frontend runtime error")
 	}
 }
 
 type frontend struct {
 	producerClient cloudevents.Client
 	apis.UnimplementedFrontendServer
+	port int
+	gs   *grpc.Server
 }
 
-func newFrontend(c config, ec cloudevents.Client) (*grpc.Server, error) {
+func NewFrontend(conf config) (*frontend, error) {
+	var err error
+	var producerClient cloudevents.Client
+	producerClient, err = events.NewProducerEvent(conf.EventConfig)
+	if err != nil {
+		return nil, err
+	}
+	log.Debug().Msg("event consumer client initializing success")
+
 	gs := grpc.NewServer()
 	fs := new(frontend)
-	fs.producerClient = ec
+	fs.producerClient = producerClient
+	fs.port = conf.GRPCPort
+	fs.gs = gs
 	apis.RegisterFrontendServer(gs, fs)
-	return gs, nil
+	return fs, nil
+}
+
+func (f *frontend) Start() error {
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", f.port))
+	if err != nil {
+		return err
+	}
+
+	return f.gs.Serve(l)
 }
 
 func (f *frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResponse, error) {
