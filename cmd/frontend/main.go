@@ -11,6 +11,7 @@ import (
 	"github.com/atgane/opentd/pkgs/logging"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
@@ -18,6 +19,7 @@ import (
 type config struct {
 	GRPCPort    int
 	EventConfig events.EventConfig
+	RedisConfig redis.Options
 	LogLevel    string
 }
 
@@ -31,6 +33,9 @@ func main() {
 				NATSServer: "localhost:4222",
 				Subject:    "some-subject",
 			},
+		},
+		RedisConfig: redis.Options{
+			Addr: "localhost:6379",
 		},
 		LogLevel: "trace",
 	}
