@@ -39,6 +39,9 @@ update-variables: # update variables
 build-frontend:
 	@docker build -t localhost:5001/frontend:latest -f cmd/frontend/dockerfile .
 
+build-dealer:
+	@docker build -t localhost:5001/dealer:latest -f cmd/dealer/dockerfile .
+
 create-kind-cluster:
 	@./sample/kind/create-cluster.sh $(cluster-name)
 
