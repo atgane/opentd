@@ -88,7 +88,6 @@ func (d *Dealer) Start() error {
 }
 
 func (d *Dealer) receive(ctx context.Context, e cloudevents.Event) (err error) {
-	// TODO: impl matching engine logic
 	log.Debug().Interface("event", e).Msg("get event")
 
 	switch e.Type() {

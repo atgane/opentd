@@ -11,5 +11,5 @@ type Engine interface {
 	AddCancel(e cloudevents.Event) error
 	AddUpdateBuy(e cloudevents.Event) error
 	AddUpdateSell(e cloudevents.Event) error
-	Start(Snapshot, stream func(apis.GetDealStream) (cloudevents.Event, error)) error
+	Start(snapshot func() error, stream func(apis.GetDealStream) (cloudevents.Event, error)) error
 }
