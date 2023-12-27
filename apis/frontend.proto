@@ -8,5 +8,6 @@ service Frontend {
     rpc Buy(BuyRequest) returns (BuyResponse) {}
     rpc Sell(SellRequest) returns (SellResponse) {}
     rpc Cancel(CancelRequest) returns (CancelResponse) {}
-    rpc Update(UpdateRequest) returns (UpdateResponse) {}
+    rpc UpdateBuy(UpdateRequest) returns (UpdateResponse) {}
+    rpc UpdateSell(UpdateRequest) returns (UpdateResponse) {}
 }

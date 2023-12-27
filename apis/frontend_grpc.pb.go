@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Frontend_Buy_FullMethodName    = "/Frontend/Buy"
-	Frontend_Sell_FullMethodName   = "/Frontend/Sell"
-	Frontend_Cancel_FullMethodName = "/Frontend/Cancel"
-	Frontend_Update_FullMethodName = "/Frontend/Update"
+	Frontend_Buy_FullMethodName        = "/Frontend/Buy"
+	Frontend_Sell_FullMethodName       = "/Frontend/Sell"
+	Frontend_Cancel_FullMethodName     = "/Frontend/Cancel"
+	Frontend_UpdateBuy_FullMethodName  = "/Frontend/UpdateBuy"
+	Frontend_UpdateSell_FullMethodName = "/Frontend/UpdateSell"
 )
 
 // FrontendClient is the client API for Frontend service.
@@ -32,7 +33,8 @@ type FrontendClient interface {
 	Buy(ctx context.Context, in *BuyRequest, opts ...grpc.CallOption) (*BuyResponse, error)
 	Sell(ctx context.Context, in *SellRequest, opts ...grpc.CallOption) (*SellResponse, error)
 	Cancel(ctx context.Context, in *CancelRequest, opts ...grpc.CallOption) (*CancelResponse, error)
-	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	UpdateBuy(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	UpdateSell(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 }
 
 type frontendClient struct {
@@ -70,9 +72,18 @@ func (c *frontendClient) Cancel(ctx context.Context, in *CancelRequest, opts ...
 	return out, nil
 }
 
-func (c *frontendClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+func (c *frontendClient) UpdateBuy(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
 	out := new(UpdateResponse)
-	err := c.cc.Invoke(ctx, Frontend_Update_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Frontend_UpdateBuy_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontendClient) UpdateSell(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+	out := new(UpdateResponse)
+	err := c.cc.Invoke(ctx, Frontend_UpdateSell_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +97,8 @@ type FrontendServer interface {
 	Buy(context.Context, *BuyRequest) (*BuyResponse, error)
 	Sell(context.Context, *SellRequest) (*SellResponse, error)
 	Cancel(context.Context, *CancelRequest) (*CancelResponse, error)
-	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	UpdateBuy(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	UpdateSell(context.Context, *UpdateRequest) (*UpdateResponse, error)
 	mustEmbedUnimplementedFrontendServer()
 }
 
@@ -103,8 +115,11 @@ func (UnimplementedFrontendServer) Sell(context.Context, *SellRequest) (*SellRes
 func (UnimplementedFrontendServer) Cancel(context.Context, *CancelRequest) (*CancelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Cancel not implemented")
 }
-func (UnimplementedFrontendServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (UnimplementedFrontendServer) UpdateBuy(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBuy not implemented")
+}
+func (UnimplementedFrontendServer) UpdateSell(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSell not implemented")
 }
 func (UnimplementedFrontendServer) mustEmbedUnimplementedFrontendServer() {}
 
@@ -173,20 +188,38 @@ func _Frontend_Cancel_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Frontend_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Frontend_UpdateBuy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontendServer).Update(ctx, in)
+		return srv.(FrontendServer).UpdateBuy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Frontend_Update_FullMethodName,
+		FullMethod: Frontend_UpdateBuy_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontendServer).Update(ctx, req.(*UpdateRequest))
+		return srv.(FrontendServer).UpdateBuy(ctx, req.(*UpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Frontend_UpdateSell_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontendServer).UpdateSell(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Frontend_UpdateSell_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontendServer).UpdateSell(ctx, req.(*UpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -211,8 +244,12 @@ var Frontend_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Frontend_Cancel_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _Frontend_Update_Handler,
+			MethodName: "UpdateBuy",
+			Handler:    _Frontend_UpdateBuy_Handler,
+		},
+		{
+			MethodName: "UpdateSell",
+			Handler:    _Frontend_UpdateSell_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

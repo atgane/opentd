@@ -6,6 +6,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/atgane/opentd/pkgs/engine"
 	"github.com/atgane/opentd/pkgs/events"
 	"github.com/atgane/opentd/pkgs/logging"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -49,9 +50,11 @@ type Dealer struct {
 	consumerClient   cloudevents.Client
 	producerClient   cloudevents.Client
 	lockExpireSecond time.Duration
+	engine           engine.Engine
 }
 
 func NewDealer(conf DealerConfig) (*Dealer, error) {
+	// TODO: add matching engine
 	ctx := context.Background()
 	consumerClient, err := events.NewConsumerEvent(conf.EventConfig)
 	if err != nil {
@@ -78,42 +81,31 @@ func (d *Dealer) Start() error {
 	ctx := context.Background()
 
 	for {
-		if err := d.consumerClient.StartReceiver(ctx, receive); err != nil {
+		if err := d.consumerClient.StartReceiver(ctx, d.receive); err != nil {
 			return err
 		}
 	}
 }
 
-func receive(ctx context.Context, e cloudevents.Event) (err error) {
+func (d *Dealer) receive(ctx context.Context, e cloudevents.Event) (err error) {
 	// TODO: impl matching engine logic
 	log.Debug().Interface("event", e).Msg("get event")
 
 	switch e.Type() {
 	case events.BuyType:
-		err = buyEvent(e)
+		err = d.engine.AddBuy(e)
 	case events.SellType:
-		err = sellEvent(e)
+		err = d.engine.AddSell(e)
 	case events.CancelType:
-		err = cancelEvent(e)
-	case events.UpdateType:
-		err = updateEvent(e)
+		err = d.engine.AddCancel(e)
+	case events.UpdateBuyType:
+		err = d.engine.AddUpdateBuy(e)
+	case events.UpdateSellType:
+		err = d.engine.AddUpdateSell(e)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
-}
-
-func buyEvent(e cloudevents.Event) error {
-	panic("unimplemented")
-}
-
-func sellEvent(e cloudevents.Event) error {
-	panic("unimplemented")
-}
-
-func cancelEvent(e cloudevents.Event) error {
-	panic("unimplemented")
-}
-
-func updateEvent(e cloudevents.Event) error {
-	panic("unimplemented")
 }
