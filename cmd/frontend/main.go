@@ -189,7 +189,7 @@ func (f *frontend) Cancel(ctx context.Context, req *apis.CancelRequest) (*apis.C
 
 	e := cloudevents.NewEvent()
 	e.SetID(rid.String())
-	e.SetType(events.SellType)
+	e.SetType(events.CancelType)
 	e.SetTime(time.Now())
 	e.SetSource(events.FrontendSource)
 	_ = e.SetData(cloudevents.ApplicationJSON, req)
@@ -243,7 +243,7 @@ func (f *frontend) Update(ctx context.Context, req *apis.UpdateRequest) (*apis.U
 
 	e := cloudevents.NewEvent()
 	e.SetID(rid.String())
-	e.SetType(events.SellType)
+	e.SetType(events.UpdateType)
 	e.SetTime(time.Now())
 	e.SetSource(events.FrontendSource)
 	_ = e.SetData(cloudevents.ApplicationJSON, req)

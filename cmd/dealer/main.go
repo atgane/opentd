@@ -84,9 +84,36 @@ func (d *Dealer) Start() error {
 	}
 }
 
-func receive(ctx context.Context, e cloudevents.Event) error {
+func receive(ctx context.Context, e cloudevents.Event) (err error) {
 	// TODO: impl matching engine logic
 	log.Debug().Interface("event", e).Msg("get event")
 
+	switch e.Type() {
+	case events.BuyType:
+		err = buyEvent(e)
+	case events.SellType:
+		err = sellEvent(e)
+	case events.CancelType:
+		err = cancelEvent(e)
+	case events.UpdateType:
+		err = updateEvent(e)
+	}
+
 	return nil
+}
+
+func buyEvent(e cloudevents.Event) error {
+	panic("unimplemented")
+}
+
+func sellEvent(e cloudevents.Event) error {
+	panic("unimplemented")
+}
+
+func cancelEvent(e cloudevents.Event) error {
+	panic("unimplemented")
+}
+
+func updateEvent(e cloudevents.Event) error {
+	panic("unimplemented")
 }
