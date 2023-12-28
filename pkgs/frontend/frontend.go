@@ -25,7 +25,7 @@ type FrontConfig struct {
 	LockExpireSecond time.Duration
 }
 
-type frontend struct {
+type Frontend struct {
 	producerClient   cloudevents.Client
 	redisClient      *redis.Client
 	port             int
@@ -35,7 +35,7 @@ type frontend struct {
 	apis.UnimplementedFrontendServer
 }
 
-func NewFrontend(conf FrontConfig) (*frontend, error) {
+func NewFrontend(conf FrontConfig) (*Frontend, error) {
 	ctx := context.Background()
 
 	producerClient, err := events.NewProducerEvent(conf.EventConfig)
@@ -51,7 +51,7 @@ func NewFrontend(conf FrontConfig) (*frontend, error) {
 
 	// TODO: TLS certificate branch
 	gs := grpc.NewServer()
-	fs := new(frontend)
+	fs := new(Frontend)
 	fs.producerClient = producerClient
 	fs.redisClient = redisClient
 	fs.port = conf.GRPCPort
@@ -61,7 +61,7 @@ func NewFrontend(conf FrontConfig) (*frontend, error) {
 	return fs, nil
 }
 
-func (f *frontend) Start() error {
+func (f *Frontend) Start() error {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", f.port))
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (f *frontend) Start() error {
 	return f.gs.Serve(l)
 }
 
-func (f *frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResponse, error) {
+func (f *Frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResponse, error) {
 	// TODO: add otel tracing
 	log.Debug().Interface("req", req).Msg("buy order accepted")
 
@@ -101,7 +101,7 @@ func (f *frontend) Buy(ctx context.Context, req *apis.BuyRequest) (*apis.BuyResp
 	return res, nil
 }
 
-func (f *frontend) Sell(ctx context.Context, req *apis.SellRequest) (*apis.SellResponse, error) {
+func (f *Frontend) Sell(ctx context.Context, req *apis.SellRequest) (*apis.SellResponse, error) {
 	log.Debug().Interface("req", req).Msg("sell order accepted")
 
 	rid := uuid.New()
@@ -131,7 +131,7 @@ func (f *frontend) Sell(ctx context.Context, req *apis.SellRequest) (*apis.SellR
 	return res, nil
 }
 
-func (f *frontend) Cancel(ctx context.Context, req *apis.CancelRequest) (*apis.CancelResponse, error) {
+func (f *Frontend) Cancel(ctx context.Context, req *apis.CancelRequest) (*apis.CancelResponse, error) {
 	log.Debug().Interface("req", req).Msg("cancel order accepted")
 
 	result := f.redisClient.SetNX(ctx, req.RequestId, 1, f.lockExpireSecond)
@@ -179,7 +179,7 @@ func (f *frontend) Cancel(ctx context.Context, req *apis.CancelRequest) (*apis.C
 	return res, nil
 }
 
-func (f *frontend) UpdateBuy(ctx context.Context, req *apis.UpdateRequest) (*apis.UpdateResponse, error) {
+func (f *Frontend) UpdateBuy(ctx context.Context, req *apis.UpdateRequest) (*apis.UpdateResponse, error) {
 	log.Debug().Interface("req", req).Msg("update buy order accepted")
 
 	result := f.redisClient.SetNX(ctx, req.RequestId, 1, f.lockExpireSecond)
@@ -236,7 +236,7 @@ func (f *frontend) UpdateBuy(ctx context.Context, req *apis.UpdateRequest) (*api
 	return res, nil
 }
 
-func (f *frontend) UpdateSell(ctx context.Context, req *apis.UpdateRequest) (*apis.UpdateResponse, error) {
+func (f *Frontend) UpdateSell(ctx context.Context, req *apis.UpdateRequest) (*apis.UpdateResponse, error) {
 	log.Debug().Interface("req", req).Msg("update sell order accepted")
 
 	result := f.redisClient.SetNX(ctx, req.RequestId, 1, f.lockExpireSecond)
