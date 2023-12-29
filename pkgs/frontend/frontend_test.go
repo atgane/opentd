@@ -20,6 +20,10 @@ import (
 
 var testFrontendScenario = []frontendScenario{
 	{"sell something", testSell},
+	{"buy  something", testBuy},
+	{"buy  something", testCancel},
+	{"buy  something", testUpdateBuy},
+	{"buy  something", testUpdateSell},
 }
 
 type frontendScenario struct {
@@ -33,6 +37,8 @@ type testState struct {
 	redisClient    *redis.Client
 	consumerClient cloudevents.Client
 	c              apis.FrontendClient
+	callbackChan   chan int
+	callback       func(ctx context.Context, e cloudevents.Event)
 }
 
 func TestFrontend(t *testing.T) {
@@ -79,6 +85,31 @@ func TestFrontend(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 	ts.c = apis.NewFrontendClient(conn)
+	ts.callbackChan = make(chan int, 1)
+	ts.callback = func(ctx context.Context, e cloudevents.Event) {
+		if e.Type() == events.SellType {
+			result := &apis.SellRequest{}
+			require.NoError(t, e.DataAs(result))
+		} else if e.Type() == events.BuyType {
+			result := &apis.BuyRequest{}
+			require.NoError(t, e.DataAs(result))
+		} else if e.Type() == events.CancelType {
+			result := &apis.CancelRequest{}
+			require.NoError(t, e.DataAs(result))
+		} else if e.Type() == events.UpdateBuyType {
+			result := &apis.UpdateRequest{}
+			require.NoError(t, e.DataAs(result))
+		} else if e.Type() == events.UpdateSellType {
+			result := &apis.UpdateRequest{}
+			require.NoError(t, e.DataAs(result))
+		}
+
+		ts.callbackChan <- 0
+	}
+
+	go func() {
+		ts.consumerClient.StartReceiver(context.Background(), ts.callback)
+	}()
 
 	// run test
 	for idx := range testFrontendScenario {
@@ -91,11 +122,92 @@ func TestFrontend(t *testing.T) {
 func testSell(t *testing.T, ts *testState) {
 	t.Helper()
 
-	_, err := ts.c.Sell(context.Background(), &apis.SellRequest{
+	data := &apis.SellRequest{
 		UserId: "user1",
-		Target: "some-subject",
+		Target: ts.conf.EventConfig.NATSConfig.Subject,
 		Amount: 1,
 		Price:  30,
-	})
+	}
+	_, err := ts.c.Sell(context.Background(), data)
 	require.NoError(t, err)
+
+	require.Equal(t, 0, <-ts.callbackChan)
+}
+
+func testBuy(t *testing.T, ts *testState) {
+	t.Helper()
+
+	data := &apis.BuyRequest{
+		UserId: "user1",
+		Target: ts.conf.EventConfig.NATSConfig.Subject,
+		Amount: 1,
+		Price:  30,
+	}
+	_, err := ts.c.Buy(context.Background(), data)
+	require.NoError(t, err)
+
+	require.Equal(t, 0, <-ts.callbackChan)
+}
+
+func testCancel(t *testing.T, ts *testState) {
+	t.Helper()
+
+	rid := "0000"
+	defer ts.redisClient.Del(context.Background(), rid)
+
+	data := &apis.CancelRequest{
+		UserId:    "user1",
+		RequestId: rid,
+	}
+	_, err := ts.c.Cancel(context.Background(), data)
+	require.NoError(t, err)
+
+	require.Equal(t, 0, <-ts.callbackChan)
+
+	time.Sleep(10 * time.Millisecond)
+	res := ts.redisClient.Get(context.Background(), rid)
+	require.NoError(t, res.Err())
+	require.Equal(t, "1", res.Val())
+}
+
+func testUpdateSell(t *testing.T, ts *testState) {
+	t.Helper()
+
+	rid := "0000"
+	defer ts.redisClient.Del(context.Background(), rid)
+
+	data := &apis.UpdateRequest{
+		UserId:    "user1",
+		RequestId: rid,
+	}
+	_, err := ts.c.UpdateSell(context.Background(), data)
+	require.NoError(t, err)
+
+	require.Equal(t, 0, <-ts.callbackChan)
+
+	time.Sleep(10 * time.Millisecond)
+	res := ts.redisClient.Get(context.Background(), rid)
+	require.NoError(t, res.Err())
+	require.Equal(t, "1", res.Val())
+}
+
+func testUpdateBuy(t *testing.T, ts *testState) {
+	t.Helper()
+
+	rid := "0000"
+	defer ts.redisClient.Del(context.Background(), rid)
+
+	data := &apis.UpdateRequest{
+		UserId:    "user1",
+		RequestId: rid,
+	}
+	_, err := ts.c.UpdateBuy(context.Background(), data)
+	require.NoError(t, err)
+
+	require.Equal(t, 0, <-ts.callbackChan)
+
+	time.Sleep(10 * time.Millisecond)
+	res := ts.redisClient.Get(context.Background(), rid)
+	require.NoError(t, res.Err())
+	require.Equal(t, "1", res.Val())
 }
